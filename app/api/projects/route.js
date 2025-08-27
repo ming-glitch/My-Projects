@@ -1,56 +1,44 @@
-// app/api/projects/route.js - improved
+// app/api/projects/route.js - ENHANCED ERROR HANDLING
 import { getDatabase } from '@/lib/mongodb';
 
-export async function GET(request) {
+export async function POST(request) {
     try {
-        console.log('API: Attempting to fetch projects...');
+        const data = await request.json();
+        console.log('API: Received data:', data);
 
         const db = await getDatabase();
 
         if (!db) {
-            console.log('API: Using fallback data due to database connection issues');
-            return Response.json({
-                data: [],
-                error: {
-                    message: 'Database not available, using fallback data',
-                    type: 'database_connection_error'
-                }
-            });
+            console.error('API: Database not available');
+            return Response.json(
+                { error: 'Database not available', message: 'Please check your MongoDB connection' },
+                { status: 500 }
+            );
         }
 
-        const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get('page')) || 1;
-        const limit = parseInt(searchParams.get('limit')) || 100;
+        const result = await db.collection('projects').insertOne({
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
 
-        const collection = db.collection('projects');
-        const total = await collection.countDocuments();
-        const projects = await collection.find()
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .toArray();
-
-        console.log(`API: Successfully fetched ${projects.length} projects`);
+        console.log('API: Insert result:', result);
 
         return Response.json({
-            data: projects,
-            pagination: {
-                page,
-                limit,
-                total,
-                totalPages: Math.ceil(total / limit)
-            }
-        });
+            success: true,
+            insertedId: result.insertedId,
+            message: 'Project added successfully'
+        }, { status: 201 });
 
     } catch (error) {
         console.error('API Error:', error);
-        return Response.json({
-            data: [],
-            error: {
-                message: 'Failed to fetch projects',
-                details: error.message,
-                type: 'api_error'
-            }
-        }, { status: 200 }); // Still return 200 but with error info
+        return Response.json(
+            {
+                error: 'Failed to create project',
+                message: error.message,
+                type: 'database_error'
+            },
+            { status: 500 }
+        );
     }
 }

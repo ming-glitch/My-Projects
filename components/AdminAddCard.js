@@ -1,3 +1,4 @@
+// components/AdminAddCard.js - Updated version
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -32,6 +33,12 @@ export default function AdminAddCard() {
         checkAdminStatus();
     }, []);
 
+    const handleAddProject = () => {
+        if (isAdmin) {
+            router.push('/add-card');
+        }
+    };
+
     if (loading) {
         return (
             <div className="group bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col h-full animate-pulse">
@@ -48,7 +55,7 @@ export default function AdminAddCard() {
     return (
         <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 p-6 flex flex-col h-full transform hover:-translate-y-1">
             <div
-                onClick={() => router.push('/add-card')}
+                onClick={handleAddProject}
                 className="flex flex-col h-full w-full cursor-pointer"
             >
                 <div className="flex-grow flex flex-col items-center justify-center gap-4 cursor-pointer transition-colors duration-300 rounded-lg p-4 h-full">

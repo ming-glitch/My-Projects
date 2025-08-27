@@ -37,50 +37,52 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [dbError, setDbError] = useState(null);
 
+  // Replace your fetchProjects function with this:
   const fetchProjects = async () => {
     try {
       setLoading(true);
       setError(null);
       setDbError(null);
 
-      // Use relative URL for API calls
       const res = await fetch('/api/projects?limit=100');
 
-      // Log the response for debugging
-      console.log('Response status:', res.status);
-
-      const responseData = await res.json();
-      console.log('API response:', responseData);
-
+      // First check if response is OK
       if (!res.ok) {
-        // If the API returned an error but with valid JSON
-        if (responseData.error) {
-          throw new Error(`${responseData.error.message || responseData.error}`);
-        }
-        throw new Error(`Failed to fetch projects: ${res.status} ${res.statusText}`);
+        throw new Error(`Server returned ${res.status} ${res.statusText}`);
       }
 
-      if (responseData.data && responseData.data.length > 0) {
-        setProjects(responseData.data);
+      // Get response as text first to handle empty responses
+      const responseText = await res.text();
+      console.log('API response text:', responseText);
 
-        // Check if there's database error info in the response
+      let responseData;
+      try {
+        responseData = responseText ? JSON.parse(responseText) : { data: [] };
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid JSON response from server');
+      }
+
+      console.log('API response data:', responseData);
+
+      if (responseData.data) {
+        setProjects(responseData.data);
         if (responseData.error) {
-          setDbError(responseData.error.message || 'Database connection issue');
+          setDbError(responseData.error);
         }
       } else {
-        // Use sample data if no projects found
+        // Use sample data if no data field
         setProjects(sampleProjects);
-        console.log('Using sample data');
-        setDbError('No projects found in database. Using sample data.');
+        setDbError('No projects data received, using sample data');
       }
+
     } catch (error) {
       console.error("Fetch error:", error);
       setError(error.message);
-      // Use sample data as fallback
       setProjects(sampleProjects);
-      setDbError(error.message);
+      setDbError('Using sample data due to: ' + error.message);
 
-      // Fallback to localStorage if available
+      // Fallback to localStorage
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('projects');
         if (saved) {

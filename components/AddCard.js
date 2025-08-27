@@ -1,4 +1,3 @@
-// components/AddCard.js - SIMPLIFIED VERSION
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,7 +7,7 @@ export default function AddCard() {
     const router = useRouter();
     const [formData, setFormData] = useState({
         title: '',
-        liveUrl: '' // ONLY what you need
+        liveUrl: '' // Only needed fields
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,13 +26,10 @@ export default function AddCard() {
         try {
             const response = await fetch('/api/projects', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     title: formData.title,
                     liveUrl: formData.liveUrl,
-                    // Add empty values for expected fields
                     description: '',
                     tags: [],
                     createdAt: new Date(),
@@ -43,19 +39,52 @@ export default function AddCard() {
 
             // Check if response is OK first
             if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`Server error: ${response.status}. ${errorText}`);
             }
 
-            const data = await response.json();
+            // Try to parse JSON
+            const text = await response.text();
+            const data = text ? JSON.parse(text) : {};
 
-            // Reset form and redirect
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            // Success - also save to localStorage as backup
+            const savedProjects = JSON.parse(localStorage.getItem('projects') || '[]');
+            savedProjects.push({
+                _id: data.insertedId || Date.now().toString(),
+                title: formData.title,
+                liveUrl: formData.liveUrl,
+                description: '',
+                tags: [],
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('projects', JSON.stringify(savedProjects));
+
             setFormData({ title: '', liveUrl: '' });
             router.push('/');
             router.refresh();
 
         } catch (error) {
             console.error('Error:', error);
-            alert('Failed to save project. Check console for details.');
+
+            // Fallback to localStorage
+            const savedProjects = JSON.parse(localStorage.getItem('projects') || '[]');
+            savedProjects.push({
+                _id: Date.now().toString(),
+                title: formData.title,
+                liveUrl: formData.liveUrl,
+                description: '',
+                tags: [],
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('projects', JSON.stringify(savedProjects));
+
+            alert('Project saved locally. Database connection may be down.');
+            router.push('/');
+            router.refresh();
         } finally {
             setIsSubmitting(false);
         }
@@ -65,6 +94,8 @@ export default function AddCard() {
         <div className="max-w-2xl mx-auto p-6">
             <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 overflow-hidden">
                 <form onSubmit={handleSubmit}>
+
+                    {/* Form Fields */}
                     <div className="p-4 space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Project Title*</label>

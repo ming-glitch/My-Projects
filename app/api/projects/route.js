@@ -1,23 +1,30 @@
-// app/api/projects/route.js
 import { getDatabase } from '@/lib/mongodb';
 
 export async function GET() {
     try {
+        console.log('API: Fetching projects...');
+
         const db = await getDatabase();
 
         if (!db) {
+            console.log('API: Database not available, returning empty data');
             return Response.json({
                 data: [],
-                error: 'Database connection failed'
+                error: 'Database not available'
             });
         }
 
         const collection = db.collection('projects');
         const projects = await collection.find().sort({ createdAt: -1 }).toArray();
 
-        return Response.json({ data: projects });
+        console.log(`API: Found ${projects.length} projects`);
+
+        return Response.json({
+            data: projects
+        });
 
     } catch (error) {
+        console.error('API Error:', error);
         return Response.json({
             data: [],
             error: error.message
@@ -28,14 +35,20 @@ export async function GET() {
 export async function POST(request) {
     try {
         const data = await request.json();
+        console.log('API: Received project data:', data);
+
         const db = await getDatabase();
 
         if (!db) {
-            return Response.json({ error: 'Database not available' }, { status: 500 });
+            console.error('API: Database not available');
+            return Response.json({
+                error: 'Database not available',
+                message: 'Please check your MongoDB connection'
+            }, { status: 500 });
         }
 
         const projectData = {
-            title: data.title || '',
+            title: data.title || 'Untitled Project',
             liveUrl: data.liveUrl || '',
             description: data.description || '',
             tags: data.tags || [],
@@ -43,14 +56,20 @@ export async function POST(request) {
             updatedAt: new Date()
         };
 
-        const result = await db.collection('projects').insertOne(projectData);
+        const collection = db.collection('projects');
+        const result = await collection.insertOne(projectData);
 
         return Response.json({
             success: true,
-            insertedId: result.insertedId
+            insertedId: result.insertedId,
+            message: 'Project added successfully'
         }, { status: 201 });
 
     } catch (error) {
-        return Response.json({ error: error.message }, { status: 500 });
+        console.error('API Error:', error);
+        return Response.json({
+            error: 'Failed to create project',
+            message: error.message
+        }, { status: 500 });
     }
 }

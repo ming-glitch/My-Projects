@@ -1,4 +1,4 @@
-// app/api/test-db/route.js
+// app/api/debug-db/route.js
 import { getDatabase } from '@/lib/mongodb';
 
 export async function GET() {
@@ -8,24 +8,25 @@ export async function GET() {
         if (!db) {
             return Response.json({
                 status: 'error',
-                message: 'Failed to connect to database',
-                error: process.env.MONGODB_URI ? 'Connection failed' : 'MONGODB_URI not set'
-            });
+                message: 'Database connection failed',
+                env: process.env.MONGODB_URI ? 'MONGODB_URI is set' : 'MONGODB_URI is NOT set'
+            }, { status: 500 });
         }
 
-        // Try a simple operation
+        // Test a simple query
         const collections = await db.listCollections().toArray();
 
         return Response.json({
             status: 'success',
             collections: collections.map(c => c.name),
-            message: 'Database connection successful'
+            message: 'Database connection working'
         });
 
     } catch (error) {
         return Response.json({
             status: 'error',
-            message: error.message
-        });
+            message: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }, { status: 500 });
     }
 }

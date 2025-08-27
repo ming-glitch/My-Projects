@@ -11,13 +11,7 @@ export default function AdminAddCard() {
         const checkAdminStatus = async () => {
             try {
                 setLoading(true);
-
-                // Get base URL - handle both server and client side
-                const baseUrl = typeof window !== 'undefined'
-                    ? window.location.origin
-                    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
-                // API Cache Busting - add timestamp to prevent caching
+                const baseUrl = window.location.origin;
                 const response = await fetch(`${baseUrl}/api/check-admin?t=${Date.now()}`);
 
                 if (!response.ok) {
@@ -38,7 +32,6 @@ export default function AdminAddCard() {
         checkAdminStatus();
     }, []);
 
-    // Show loading state - now matches project card dimensions exactly
     if (loading) {
         return (
             <div className="group bg-white rounded-xl shadow-md border border-gray-200 p-6 flex flex-col h-full animate-pulse">
@@ -50,10 +43,8 @@ export default function AdminAddCard() {
         );
     }
 
-    // Show nothing if not admin
     if (!isAdmin) return <></>;
 
-    // Show admin card if admin mode is enabled - now matches project card dimensions
     return (
         <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 p-6 flex flex-col h-full transform hover:-translate-y-1">
             <div

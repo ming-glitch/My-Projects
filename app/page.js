@@ -6,29 +6,93 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import AdminAddCard from '@/components/AdminAddCard';
 
+// Sample data for fallback
+const sampleProjects = [
+  {
+    _id: '1',
+    title: 'Weather App',
+    description: 'A responsive weather application that displays current weather and forecasts.',
+    liveUrl: 'https://weatherapp.example.com',
+    tags: ['React', 'API', 'CSS'],
+  },
+  {
+    _id: '2',
+    title: 'E-commerce Site',
+    description: 'A fully functional e-commerce website with product filtering and cart functionality.',
+    liveUrl: 'https://ecommerce.example.com',
+    tags: ['Next.js', 'Node.js', 'MongoDB'],
+  },
+  {
+    _id: '3',
+    title: 'Task Manager',
+    description: 'A productivity app for managing daily tasks with drag-and-drop functionality.',
+    liveUrl: 'https://taskmanager.example.com',
+    tags: ['JavaScript', 'LocalStorage', 'UI/UX'],
+  }
+];
+
 export default function Home() {
   const [projects, setProjects] = useState([]);
-  const [isExpanded, setIsExpanded] = useState({});
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(null);
+  const [error, setError] = useState(null);
+  const [dbError, setDbError] = useState(null);
 
-  // Fetch all projects without pagination
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/projects?limit=100`); // Increased limit to get all projects
+      setError(null);
+      setDbError(null);
+
+      // Use relative URL for API calls
+      const res = await fetch('/api/projects?limit=100');
+
+      // Log the response for debugging
+      console.log('Response status:', res.status);
+
+      const responseData = await res.json();
+      console.log('API response:', responseData);
 
       if (!res.ok) {
-        throw new Error('Failed to fetch projects');
+        // If the API returned an error but with valid JSON
+        if (responseData.error) {
+          throw new Error(`${responseData.error.message || responseData.error}`);
+        }
+        throw new Error(`Failed to fetch projects: ${res.status} ${res.statusText}`);
       }
 
-      const { data } = await res.json();
-      setProjects(data);
+      if (responseData.data && responseData.data.length > 0) {
+        setProjects(responseData.data);
+
+        // Check if there's database error info in the response
+        if (responseData.error) {
+          setDbError(responseData.error.message || 'Database connection issue');
+        }
+      } else {
+        // Use sample data if no projects found
+        setProjects(sampleProjects);
+        console.log('Using sample data');
+        setDbError('No projects found in database. Using sample data.');
+      }
     } catch (error) {
       console.error("Fetch error:", error);
-      // Fallback to localStorage if API fails
-      const saved = localStorage.getItem('projects');
-      if (saved) setProjects(JSON.parse(saved));
+      setError(error.message);
+      // Use sample data as fallback
+      setProjects(sampleProjects);
+      setDbError(error.message);
+
+      // Fallback to localStorage if available
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('projects');
+        if (saved) {
+          try {
+            const parsedProjects = JSON.parse(saved);
+            setProjects(parsedProjects);
+            setDbError('Using projects from local storage');
+          } catch (e) {
+            console.error("Error parsing saved projects:", e);
+          }
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -38,33 +102,11 @@ export default function Home() {
     fetchProjects();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (confirm('Are you sure you want to delete this project?')) {
-      try {
-        await fetch('/api/projects', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id })
-        });
-        setProjects(prev => prev.filter(p => p._id !== id));
-      } catch (error) {
-        console.error("Delete error:", error);
-      }
-    }
-  };
-
-  const toggleExpand = (id) => {
-    setIsExpanded(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
   return (
     <main className="bg-purple-100">
       <Navbar />
 
-      {/* About Me - completely unchanged */}
+      {/* About Me */}
       <div id="about-me" className="bg-white py-12">
         <section className="container mx-auto pt-10 px-4 md:px-22">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -99,7 +141,7 @@ export default function Home() {
 
       {/* Projects */}
       <div className="pt-16">
-        {/* heading - unchanged */}
+        {/* heading */}
         <div className="flex flex-col gap-6 justify-center items-center text-center">
           <h2 className="font-medium text-2xl">
             Explore My <span className="relative inline-block">
@@ -112,8 +154,27 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Cards - structure unchanged, only dynamic rendering added */}
+        {/* Cards */}
         <section className="container mx-auto pt-10 px-4 md:px-22 p-16">
+
+          {/* Error message */}
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              <p className="font-bold">Error: Could not load projects from server</p>
+              <p>{error}</p>
+            </div>
+          )}
+
+          {/* Database connection warning */}
+          {dbError && (
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6">
+              <p className="font-bold">Database Connection Issue</p>
+              <p>{dbError}</p>
+              <p className="text-sm mt-2">
+                Please check your MongoDB connection string in the .env.local file
+              </p>
+            </div>
+          )}
 
           {/* Loading state */}
           {loading && (
@@ -178,8 +239,6 @@ export default function Home() {
             <AdminAddCard />
 
           </div>
-
-
         </section>
       </div>
 

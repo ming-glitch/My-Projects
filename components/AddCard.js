@@ -26,9 +26,7 @@ export default function AddCard() {
         setIsSubmitting(true);
 
         try {
-            // Get base URL properly
             const baseUrl = window.location.origin;
-
             const response = await fetch(`${baseUrl}/api/projects`, {
                 method: 'POST',
                 headers: {
@@ -48,7 +46,6 @@ export default function AddCard() {
                 throw new Error(data.error || 'Failed to save project');
             }
 
-            // Reset form
             setFormData({
                 title: '',
                 description: '',

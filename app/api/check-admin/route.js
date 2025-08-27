@@ -1,6 +1,5 @@
 export async function GET() {
     try {
-        // Check environment variable
         const isAdmin = process.env.ADMIN_MODE === 'true';
 
         return Response.json({

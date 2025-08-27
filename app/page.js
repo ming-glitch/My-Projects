@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import AdminAddCard from '@/components/AdminAddCard';
-import DebugAdmin from "@/components/debugAdmin";
 
 // Sample data for fallback
 const sampleProjects = [
@@ -238,7 +237,6 @@ export default function Home() {
             ))}
 
             <AdminAddCard />
-            <DebugAdmin />
 
           </div>
         </section>

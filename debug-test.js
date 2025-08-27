@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 
 // Please paste your ACTUAL connection string here (I'll show you how to format it)
-const uri = 'PASTE_YOUR_CONNECTION_STRING_HERE';
+const uri = 'mongodb+srv://portfolioadmin:admin123@cluster0.x7uqgch.mongodb.net/portfolio-projects?retryWrites=true&w=majority&appName=Cluster0';
 
 console.log('Testing connection to:', uri.replace(/:[^:]*@/, ':****@'));
 

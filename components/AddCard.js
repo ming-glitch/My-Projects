@@ -1,4 +1,3 @@
-// app/add-card/page.js
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -36,7 +35,8 @@ export default function AddCard() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    ...formData,
+                    title: formData.title,
+                    liveUrl: formData.liveUrl,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 })

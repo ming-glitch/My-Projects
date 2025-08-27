@@ -1,4 +1,5 @@
 import AddCard from '@/components/AddCard';
+import { redirect } from 'next/navigation';
 
 async function checkAdmin() {
     try {
@@ -24,6 +25,10 @@ async function checkAdmin() {
 
 export default async function AddCardPage() {
     const isAdmin = await checkAdmin();
+
+    if (!isAdmin) {
+        redirect('/');
+    }
 
     return <AddCard />;
 }

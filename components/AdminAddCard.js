@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function AdminAddCard() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         const checkAdminStatus = async () => {
@@ -50,14 +51,14 @@ export default function AdminAddCard() {
     }
 
     // Show nothing if not admin
-    if (!isAdmin) return null;
+    if (!isAdmin) return <></>;
 
     // Show admin card if admin mode is enabled - now matches project card dimensions
     return (
         <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 p-6 flex flex-col h-full transform hover:-translate-y-1">
-            <Link
-                href="/add-card"
-                className="flex flex-col h-full w-full"
+            <div
+                onClick={() => router.push('/add-card')}
+                className="flex flex-col h-full w-full cursor-pointer"
             >
                 <div className="flex-grow flex flex-col items-center justify-center gap-4 cursor-pointer transition-colors duration-300 rounded-lg p-4 h-full">
                     <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center transition-all duration-300 group-hover:bg-blue-600 group-hover:scale-110">
@@ -75,7 +76,7 @@ export default function AdminAddCard() {
                         Add New Project
                     </span>
                 </div>
-            </Link>
+            </div>
         </div>
     );
 }

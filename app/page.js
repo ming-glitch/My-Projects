@@ -9,26 +9,28 @@ import AdminAddCard from '@/components/AdminAddCard';
 export default function Home() {
   const [projects, setProjects] = useState([]);
   const [isExpanded, setIsExpanded] = useState({});
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 6,
-    total: 0,
-    totalPages: 1
-  });
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(null);
 
-  // Fetch projects with pagination
-  const fetchProjects = async (page = 1) => {
+  // Fetch all projects without pagination
+  const fetchProjects = async () => {
     try {
-      const res = await fetch(`/api/projects?page=${page}&limit=${pagination.limit}`);
-      const { data, pagination: paginationData } = await res.json();
+      setLoading(true);
+      const res = await fetch(`/api/projects?limit=100`); // Increased limit to get all projects
+
+      if (!res.ok) {
+        throw new Error('Failed to fetch projects');
+      }
+
+      const { data } = await res.json();
       setProjects(data);
-      setPagination(paginationData);
     } catch (error) {
       console.error("Fetch error:", error);
       // Fallback to localStorage if API fails
       const saved = localStorage.getItem('projects');
       if (saved) setProjects(JSON.parse(saved));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,66 +114,70 @@ export default function Home() {
 
         {/* Cards - structure unchanged, only dynamic rendering added */}
         <section className="container mx-auto pt-10 px-4 md:px-22 p-16">
-          
-            {/* Dynamically rendered projects */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-              {projects.map((project) => (
-                <div
-                  key={project._id}
-                  className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 p-6 flex flex-col transform hover:-translate-y-1"
-                >
-                  <div className="flex-grow">
-                    <h3 className="font-semibold text-xl text-gray-800 mb-3">
-                      {project.title}
-                    </h3>
+          {/* Loading state */}
+          {loading && (
+            <div className="text-center py-8">Loading projects...</div>
+          )}
 
-                    {project.description && (
-                      <p className="text-gray-600 mb-6">
-                        {project.description}
-                      </p>
-                    )}
-                  </div>
+          {/* Dynamically rendered projects */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project) => (
+              <div
+                key={project._id}
+                className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 p-6 flex flex-col transform hover:-translate-y-1"
+              >
+                <div className="flex-grow">
+                  <h3 className="font-semibold text-xl text-gray-800 mb-3">
+                    {project.title}
+                  </h3>
 
-                  <div className="flex justify-between items-center mt-4">
-                    <Link
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 group-hover:underline"
+                  {project.description && (
+                    <p className="text-gray-600 mb-6">
+                      {project.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center mt-4">
+                  <Link
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 group-hover:underline"
+                  >
+                    Visit Live Site
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
-                      Visit Live Site
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </Link>
+                      <path
+                        fillRule="evenodd"
+                        d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </Link>
 
-                    <div className="flex space-x-2">
-                      {project.tags && project.tags.slice(0, 2).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="flex space-x-2">
+                    {project.tags && project.tags.slice(0, 2).map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
 
-              <AdminAddCard />
+            <AdminAddCard />
 
-            </div>
+          </div>
 
 
         </section>

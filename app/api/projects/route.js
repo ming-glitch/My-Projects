@@ -22,6 +22,14 @@ async function connectToDatabase() {
     return { client, db };
 }
 
+// Headers for CORS
+const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 // GET with Pagination
 export async function GET(request) {
     try {
@@ -49,13 +57,13 @@ export async function GET(request) {
                 total,
                 totalPages
             }
-        });
+        }, { headers });
     } catch (error) {
         console.error('Database error:', error);
         return Response.json({
             error: 'Failed to fetch projects',
             message: error.message
-        }, { status: 500 });
+        }, { status: 500, headers });
     }
 }
 
@@ -71,13 +79,13 @@ export async function POST(request) {
             updatedAt: new Date()
         });
 
-        return Response.json(result, { status: 201 });
+        return Response.json(result, { status: 201, headers });
     } catch (error) {
         console.error('Database error:', error);
         return Response.json({
             error: 'Failed to create project',
             message: error.message
-        }, { status: 500 });
+        }, { status: 500, headers });
     }
 }
 
@@ -87,7 +95,7 @@ export async function DELETE(request) {
         const { id } = await request.json();
 
         if (!id) {
-            return Response.json({ error: 'Project ID is required' }, { status: 400 });
+            return Response.json({ error: 'Project ID is required' }, { status: 400, headers });
         }
 
         const { db } = await connectToDatabase();
@@ -95,15 +103,27 @@ export async function DELETE(request) {
             .deleteOne({ _id: new ObjectId(id) });
 
         if (result.deletedCount === 0) {
-            return Response.json({ error: 'Project not found' }, { status: 404 });
+            return Response.json({ error: 'Project not found' }, { status: 404, headers });
         }
 
-        return Response.json({ message: 'Project deleted successfully' });
+        return Response.json({ message: 'Project deleted successfully' }, { headers });
     } catch (error) {
         console.error('Database error:', error);
         return Response.json({
             error: 'Failed to delete project',
             message: error.message
-        }, { status: 500 });
+        }, { status: 500, headers });
     }
+}
+
+// OPTIONS for CORS preflight
+export async function OPTIONS() {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        }
+    });
 }

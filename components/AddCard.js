@@ -1,4 +1,4 @@
-// components/AddCard.js - UPDATED VERSION
+// components/AddCard.js - SIMPLIFIED VERSION
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,9 +8,7 @@ export default function AddCard() {
     const router = useRouter();
     const [formData, setFormData] = useState({
         title: '',
-        description: '',
-        liveUrl: '',
-        imageUrl: '/default-project.png'
+        liveUrl: '' // ONLY what you need
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,8 +25,7 @@ export default function AddCard() {
         setIsSubmitting(true);
 
         try {
-            const baseUrl = window.location.origin;
-            const response = await fetch(`${baseUrl}/api/projects`, {
+            const response = await fetch('/api/projects', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -36,8 +33,9 @@ export default function AddCard() {
                 body: JSON.stringify({
                     title: formData.title,
                     liveUrl: formData.liveUrl,
-                    description: formData.description || '', // Add description
-                    tags: [], // Add empty tags array
+                    // Add empty values for expected fields
+                    description: '',
+                    tags: [],
                     createdAt: new Date(),
                     updatedAt: new Date()
                 })
@@ -45,32 +43,19 @@ export default function AddCard() {
 
             // Check if response is OK first
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Server error: ${response.status} ${response.statusText}. ${errorText}`);
+                throw new Error(`Server error: ${response.status}`);
             }
 
-            // Try to parse JSON only if response has content
-            const text = await response.text();
-            const data = text ? JSON.parse(text) : {};
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
+            const data = await response.json();
 
             // Reset form and redirect
-            setFormData({
-                title: '',
-                description: '',
-                liveUrl: '',
-                imageUrl: '/default-project.png'
-            });
-
+            setFormData({ title: '', liveUrl: '' });
             router.push('/');
             router.refresh();
 
         } catch (error) {
             console.error('Error:', error);
-            alert(error.message || 'Failed to save project. Check console for details.');
+            alert('Failed to save project. Check console for details.');
         } finally {
             setIsSubmitting(false);
         }
@@ -80,8 +65,6 @@ export default function AddCard() {
         <div className="max-w-2xl mx-auto p-6">
             <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 overflow-hidden">
                 <form onSubmit={handleSubmit}>
-
-                    {/* Form Fields */}
                     <div className="p-4 space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Project Title*</label>
@@ -93,18 +76,6 @@ export default function AddCard() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Weather App"
                                 required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Project Description</label>
-                            <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Describe your project..."
-                                rows="3"
                             />
                         </div>
 

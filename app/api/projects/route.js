@@ -1,44 +1,31 @@
-// app/api/projects/route.js - ENHANCED ERROR HANDLING
-import { getDatabase } from '@/lib/mongodb';
-
+// app/api/projects/route.js - Add default values
 export async function POST(request) {
     try {
         const data = await request.json();
-        console.log('API: Received data:', data);
 
-        const db = await getDatabase();
-
-        if (!db) {
-            console.error('API: Database not available');
-            return Response.json(
-                { error: 'Database not available', message: 'Please check your MongoDB connection' },
-                { status: 500 }
-            );
-        }
-
-        const result = await db.collection('projects').insertOne({
-            ...data,
+        // Set default values for missing fields
+        const projectData = {
+            title: data.title || '',
+            liveUrl: data.liveUrl || '',
+            description: data.description || '',
+            tags: data.tags || [],
             createdAt: new Date(),
             updatedAt: new Date()
-        });
+        };
 
-        console.log('API: Insert result:', result);
+        const db = await getDatabase();
+        if (!db) {
+            return Response.json({ error: 'Database not available' }, { status: 500 });
+        }
+
+        const result = await db.collection('projects').insertOne(projectData);
 
         return Response.json({
             success: true,
-            insertedId: result.insertedId,
-            message: 'Project added successfully'
+            insertedId: result.insertedId
         }, { status: 201 });
 
     } catch (error) {
-        console.error('API Error:', error);
-        return Response.json(
-            {
-                error: 'Failed to create project',
-                message: error.message,
-                type: 'database_error'
-            },
-            { status: 500 }
-        );
+        return Response.json({ error: error.message }, { status: 500 });
     }
 }

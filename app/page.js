@@ -188,58 +188,66 @@ export default function Home() {
             {projects.map((project) => (
               <div
                 key={project._id}
-                className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 p-6 flex flex-col transform hover:-translate-y-1"
+                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
               >
-                <div className="flex-grow">
+                {/* Card Content */}
+                <div className="p-6">
+                  {/* Project Title */}
                   <h3 className="font-semibold text-xl text-gray-800 mb-3">
                     {project.title}
                   </h3>
 
+                  {/* Project Description */}
                   {project.description && (
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-gray-600 mb-4 leading-relaxed">
                       {project.description}
                     </p>
                   )}
-                </div>
 
-                <div className="flex justify-between items-center mt-4">
-                  <Link
-                    href={project.liveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 group-hover:underline"
-                  >
-                    Visit Live Site
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </Link>
-
-                  <div className="flex space-x-2">
-                    {project.tags && project.tags.slice(0, 2).map((tag, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                  {/* Action Button and Tags */}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex justify-between items-center">
+                      {/* Visit Live Site Button */}
+                      <Link
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
                       >
-                        {tag}
-                      </span>
-                    ))}
+                        Visit Live Site
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="ml-2 h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </Link>
+
+                      {/* Technology Tags - Moved inside the justify-between container */}
+                      {project.tags && project.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {project.tags.slice(0, 2).map((tag, index) => ( // Reduced to 2 tags for better spacing
+                            <span
+                              key={index}
+                              className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border border-gray-200"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
-
             <AdminAddCard />
-
           </div>
         </section>
       </div>

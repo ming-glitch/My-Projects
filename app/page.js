@@ -188,10 +188,10 @@ export default function Home() {
             {projects.map((project) => (
               <div
                 key={project._id}
-                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col"
               >
                 {/* Card Content */}
-                <div className="p-6">
+                <div className="p-6 flex-grow">
                   {/* Project Title */}
                   <h3 className="font-semibold text-xl text-gray-800 mb-3">
                     {project.title}
@@ -203,8 +203,10 @@ export default function Home() {
                       {project.description}
                     </p>
                   )}
+                </div>
 
-                  {/* Action Button and Tags */}
+                {/* Fixed bottom section for button and tags */}
+                <div className="p-6 pt-0 mt-auto">
                   <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center">
                       {/* Visit Live Site Button */}
